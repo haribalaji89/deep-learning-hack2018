@@ -1,4 +1,4 @@
-def model(X_train, Y_train, X_test, Y_test, learning_rate=0.0001, num_epochs = 1000, minibatch_size=32, print_cost = True):
+def model(X_train, Y_train, X_test, Y_test, learning_rate=0.0001, num_iterations = 1000, minibatch_size=32, print_cost = True):
         tf.reset_default_graph()
         dropout_val = 1
         tf.set_random_seed(1)
@@ -20,7 +20,7 @@ def model(X_train, Y_train, X_test, Y_test, learning_rate=0.0001, num_epochs = 1
         init = tf.global_variables_initializer()
         with tf.Session() as sess:
                 sess.run(init)
-                for epoch in range(num_epochs):
+                for epoch in range(num_iterations):
                         epoch_cost = 0
                         num_minibatches = int(m / minibatch_size)
                         seed = seed + 1
@@ -153,66 +153,7 @@ minm_test = np.min(X_float_test, axis=0)
 maxm_test = np.max(X_float_test, axis=0)
 X_test = (X_float_test - mu_test) / (maxm_test - minm_test)
 
-import sklearn
-import sklearn.datasets
-import sklearn.linear_model
 
-clf = sklearn.linear_model.LogisticRegressionCV();
-clf.fit(X_train, Y_train);
-
-LR_predictions = clf.predict(X_test)
-print ('Accuracy of logistic regression: %d ' % float((np.dot(Y_test.T, LR_predictions) + np.dot(1 - Y_test.T,1 - LR_predictions)) / float(Y_test.T.size) * 100) + '% ' + "(percentage of correctly labelled datapoints)")
-
-X_train = X_train.T
-Y_train = convert_to_one_hot(Y_train, 2)
-
-
-
-def initialize_parameters_lr():
-        tf.set_random_seed(1)
-        W = tf.get_variable("W", [2, 18], initializer = tf.contrib.layers.xavier_initializer(seed=1))        
-        b = tf.get_variable("b", [2, 1], initializer = tf.zeros_initializer())
-        parameters = {"W": W,
-                  "b": b}
-    
-        return parameters
-def forward_propagation_lr(X, parameters):
-        W = parameters['W']
-        b = parameters['b']
-        Z = tf.add(tf.matmul(W, X), b)
-        return Z
-
-def model_lr(X_train, Y_train, X_test, Y_test, learning_rate=0.01, num_epochs = 1500, print_cost = True):
-        tf.set_random_seed(1)
-        seed = 3
-        n_x = X_train.shape[0]
-        m = X_train.shape[1]
-        n_y = Y_train.shape[0]
-        costs = []
-        print(n_x)
-        print(n_y)
-        print(m)
-        X, Y = create_placeholders(n_x, n_y)
-        print(str(X))
-        print(str(Y))
-        parameters = initialize_parameters_lr()
-        Z = forward_propagation_lr(X, parameters)
-        cost = compute_cost(Z, Y)
-        optimizer = tf.train.AdamOptimizer(learning_rate = learning_rate).minimize(cost)
-        init = tf.global_variables_initializer()
-        with tf.Session() as sess:
-                sess.run(init)
-                for epoch in range(num_epochs):
-                        _ , epoch_cost = sess.run([optimizer, cost], feed_dict={X: X_train, Y: Y_train})                
-                        if print_cost == True and epoch %100 == 0:
-                                print ("Cost after epoch %i: %f" % (epoch, epoch_cost))     
-                parameters = sess.run(parameters)
-                print("Parameters have been trained!")
-                correct_prediction = tf.equal(tf.argmax(tf.sigmoid(Z)), tf.argmax(Y))
-                accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
-                print("Train Accuracy:", accuracy.eval({X: X_train, Y: Y_train}))
-                return parameters
-        
 def predict(X, parameters):
     print("Inside convert to tensor:" + str(X.shape))
     W1 = tf.convert_to_tensor(parameters["W1"])
