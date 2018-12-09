@@ -1,3 +1,37 @@
+import tensorflow as tf
+import numpy as np
+import sklearn
+import sklearn.datasets
+import sklearn.linear_model
+
+from numpy import genfromtxt
+X_raw = genfromtxt('C:/RCS/FintechHackData/FinTechRatiosTrain.csv', delimiter=',', dtype=None)
+X_real = X_raw[1:]
+X_real = X_real[...,2:]
+X_float = X_real.astype(float)
+Y_train = X_float[...,18]
+Y_train = Y_train.astype(int)
+X_train_float = X_float[:, :-1]
+mu = np.mean(X_train_float, axis=0)
+minm = np.min(X_train_float, axis=0)
+maxm = np.max(X_train_float, axis=0)
+X_train = (X_train_float - mu) / (maxm - minm)
+
+X_raw_test = genfromtxt('C:/RCS/FintechHackData/FinTechRatiosTest.csv', delimiter=',', dtype=None)
+X_real_test = X_raw_test[1:]
+X_real_test = X_real_test[...,2:]
+X_float_test = X_real_test.astype(float)
+Y_test = X_float_test[...,18]
+Y_test = Y_test.astype(int)
+X_float_test = X_float_test[:, :-1]
+mu_test = np.mean(X_float_test, axis=0)
+minm_test = np.min(X_float_test, axis=0)
+maxm_test = np.max(X_float_test, axis=0)
+X_test = (X_float_test - mu) / (maxm - minm)
+
+LR_predictions = clf.predict(X_test)
+print ('Accuracy of logistic regression: %d ' % float((np.dot(Y_test, LR_predictions) + np.dot(1 - Y_test,1 - LR_predictions)) / float(Y_test.size) * 100) + '% ' + "(percentage of correctly labelled datapoints)")
+
 def model(X_train, Y_train, X_test, Y_test, learning_rate=0.0001, num_iterations = 1000, minibatch_size=32, print_cost = True):
         tf.reset_default_graph()
         dropout_val = 1
@@ -65,9 +99,9 @@ def initialize_parameters():
         tf.set_random_seed(1)
         W1 = tf.get_variable("W1", [30, 18], initializer = tf.contrib.layers.xavier_initializer(seed=1))
         b1 = tf.get_variable("b1", [30, 1], initializer = tf.zeros_initializer())
-        W2 = tf.get_variable("W2", [30,30], initializer = tf.contrib.layers.xavier_initializer(seed=1))
-        b2 = tf.get_variable("b2", [30, 1], initializer = tf.zeros_initializer())
-        W3 = tf.get_variable("W3", [2, 30], initializer = tf.contrib.layers.xavier_initializer(seed=1))
+        W2 = tf.get_variable("W2", [25,30], initializer = tf.contrib.layers.xavier_initializer(seed=1))
+        b2 = tf.get_variable("b2", [25, 1], initializer = tf.zeros_initializer())
+        W3 = tf.get_variable("W3", [2, 25], initializer = tf.contrib.layers.xavier_initializer(seed=1))
         #W1 = tf.get_variable("W1", [5, 2], initializer = tf.contrib.layers.xavier_initializer(seed=1))
         #b1 = tf.get_variable("b1", [5, 1], initializer = tf.zeros_initializer())
         #W2 = tf.get_variable("W2", [5,5], initializer = tf.contrib.layers.xavier_initializer(seed=1))
@@ -80,8 +114,8 @@ def initialize_parameters():
                   "b2": b2,
                   "W3": W3,
                   "b3": b3}
+    
         return parameters
-
 def forward_propagation(X, parameters):
         W1 = parameters['W1']
         b1 = parameters['b1']
@@ -92,8 +126,7 @@ def forward_propagation(X, parameters):
         Z1 = tf.add(tf.matmul(W1, X), b1)                      # Z1 = np.dot(W1, X) + b1
         A1 = tf.nn.relu(Z1)                                    # A1 = relu(Z1)
         Z2 = tf.add(tf.matmul(W2, A1), b2)                     # Z2 = np.dot(W2, a1) + b2
-        drop_out = tf.nn.dropout(Z2, dropout_val)
-        A2 = tf.nn.relu(drop_out)                              # A2 = relu(Z2)
+        A2 = tf.nn.relu(Z2)                                    # A2 = relu(Z2)
         Z3 = tf.add(tf.matmul(W3, A2), b3)
         return Z3
 def compute_cost(Z3, Y):
@@ -122,38 +155,62 @@ def random_mini_batches(X, Y, mini_batch_size = 64, seed = 0):
                 mini_batches.append(mini_batch)
         return mini_batches
 
-def convert_to_one_hot(Y, C):
-    Y = np.eye(C)[Y.reshape(-1)].T
-    return Y
-
-import tensorflow as tf
-import numpy as np
-from numpy import genfromtxt
-X_raw = genfromtxt('C:/RCS/FintechHackData/FinTechRatiosTrain.csv', delimiter=',', dtype=None)
-X_real = X_raw[1:]
-X_real = X_real[...,2:]
-X_float = X_real.astype(float)
-Y_train = X_float[...,18]
-Y_train = Y_train.astype(int)
-X_train_float = X_float[:, :-1]
-mu = np.mean(X_train_float, axis=0)
-minm = np.min(X_train_float, axis=0)
-maxm = np.max(X_train_float, axis=0)
-X_train = (X_train_float - mu) / (maxm - minm)
-
-X_raw_test = genfromtxt('C:/RCS/FintechHackData/FinTechRatiosTest.csv', delimiter=',', dtype=None)
-X_real_test = X_raw_test[1:]
-X_real_test = X_real_test[...,2:]
-X_float_test = X_real_test.astype(float)
-Y_test = X_float_test[...,18]
-Y_test = Y_test.astype(int)
-X_float_test = X_float_test[:, :-1]
-mu_test = np.mean(X_float_test, axis=0)
-minm_test = np.min(X_float_test, axis=0)
-maxm_test = np.max(X_float_test, axis=0)
-X_test = (X_float_test - mu_test) / (maxm_test - minm_test)
 
 
+
+clf = sklearn.linear_model.LogisticRegressionCV();
+clf.fit(X_train, Y_train);
+
+X_train = X_train.T
+Y_train = convert_to_one_hot(Y_train, 2)
+
+
+
+def initialize_parameters_lr():
+        tf.set_random_seed(1)
+        W = tf.get_variable("W", [2, 18], initializer = tf.contrib.layers.xavier_initializer(seed=1))        
+        b = tf.get_variable("b", [2, 1], initializer = tf.zeros_initializer())
+        parameters = {"W": W,
+                  "b": b}
+    
+        return parameters
+def forward_propagation_lr(X, parameters):
+        W = parameters['W']
+        b = parameters['b']
+        Z = tf.add(tf.matmul(W, X), b)
+        return Z
+
+def model_lr(X_train, Y_train, X_test, Y_test, learning_rate=0.01, num_epochs = 1500, print_cost = True):
+        tf.set_random_seed(1)
+        seed = 3
+        n_x = X_train.shape[0]
+        m = X_train.shape[1]
+        n_y = Y_train.shape[0]
+        costs = []
+        print(n_x)
+        print(n_y)
+        print(m)
+        X, Y = create_placeholders(n_x, n_y)
+        print(str(X))
+        print(str(Y))
+        parameters = initialize_parameters_lr()
+        Z = forward_propagation_lr(X, parameters)
+        cost = compute_cost(Z, Y)
+        optimizer = tf.train.AdamOptimizer(learning_rate = learning_rate).minimize(cost)
+        init = tf.global_variables_initializer()
+        with tf.Session() as sess:
+                sess.run(init)
+                for epoch in range(num_epochs):
+                        _ , epoch_cost = sess.run([optimizer, cost], feed_dict={X: X_train, Y: Y_train})                
+                        if print_cost == True and epoch %100 == 0:
+                                print ("Cost after epoch %i: %f" % (epoch, epoch_cost))     
+                parameters = sess.run(parameters)
+                print("Parameters have been trained!")
+                correct_prediction = tf.equal(tf.argmax(tf.sigmoid(Z)), tf.argmax(Y))
+                accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
+                print("Train Accuracy:", accuracy.eval({X: X_train, Y: Y_train}))
+                return parameters
+        
 def predict(X, parameters):
     print("Inside convert to tensor:" + str(X.shape))
     W1 = tf.convert_to_tensor(parameters["W1"])
@@ -170,7 +227,7 @@ def predict(X, parameters):
               "W3": W3,
               "b3": b3}
     
-    x = tf.placeholder("float64", [2, 169743])
+    x = tf.placeholder("float64", [2, 90000])
     
     z3 = forward_propagation_for_predict(X, parameters)
     print("z3 shape:" + str(z3.shape))
@@ -212,8 +269,8 @@ def plot_decision_boundary(model, X, y):
     Z = Z.reshape(xx.shape)
     # Plot the contour and training examples
     plt.contourf(xx, yy, Z, cmap=plt.cm.Spectral)
-    plt.ylabel('Working Capital / Total Assets')
-    plt.xlabel('Net Income/Total Assets')
+    plt.ylabel('x2')
+    plt.xlabel('x1')
     plt.scatter(X[0, :], X[1, :], c=y.ravel(), cmap=plt.cm.Spectral)
     plt.show()
 
