@@ -1,36 +1,43 @@
 import tensorflow as tf
 import numpy as np
+import matplotlib.pyplot as plt
+from numpy import genfromtxt
+X_raw = genfromtxt('D:/RCS/FintechHackData/FinTechRatiosTrain.csv', delimiter=',', dtype=None)
+X_real = X_raw[1:]
+X_real = X_real[...,2:]
+X_float = X_real.astype(float)
+X_raw_test = genfromtxt('D:/RCS/FintechHackData/FinTechRatiosTest.csv', delimiter=',', dtype=None)
+X_real_test = X_raw_test[1:]
+X_real_test = X_real_test[...,2:]
+X_float_test = X_real_test.astype(float)
+X_combined = np.concatenate((X_float, X_float_test), axis=0)
+Y_combined = X_combined[...,18]
+Y_combined = Y_combined.astype(int)
+X_comb_float = X_combined[:, :-1]
+mu = np.mean(X_comb_float, axis=0)
+minm = np.min(X_comb_float, axis=0)
+maxm = np.max(X_comb_float, axis=0)
+X_norm = (X_comb_float - mu) / (maxm - minm)
+X_train = X_norm[:(X_raw.shape[0]-1), :]
+X_test = X_norm[(X_raw.shape[0]-1):, :]
+Y_train = Y_combined[0:(X_raw.shape[0]-1)]
+Y_test = Y_combined[(X_raw.shape[0]-1):]
+
 import sklearn
 import sklearn.datasets
 import sklearn.linear_model
 
-from numpy import genfromtxt
-X_raw = genfromtxt('C:/RCS/FintechHackData/FinTechRatiosTrain.csv', delimiter=',', dtype=None)
-X_real = X_raw[1:]
-X_real = X_real[...,2:]
-X_float = X_real.astype(float)
-Y_train = X_float[...,18]
-Y_train = Y_train.astype(int)
-X_train_float = X_float[:, :-1]
-mu = np.mean(X_train_float, axis=0)
-minm = np.min(X_train_float, axis=0)
-maxm = np.max(X_train_float, axis=0)
-X_train = (X_train_float - mu) / (maxm - minm)
+clf = sklearn.linear_model.LogisticRegressionCV();
+clf.fit(X_train, Y_train);
+LR_predictions = clf.predict(X_train)
 
-X_raw_test = genfromtxt('C:/RCS/FintechHackData/FinTechRatiosTest.csv', delimiter=',', dtype=None)
-X_real_test = X_raw_test[1:]
-X_real_test = X_real_test[...,2:]
-X_float_test = X_real_test.astype(float)
-Y_test = X_float_test[...,18]
-Y_test = Y_test.astype(int)
-X_float_test = X_float_test[:, :-1]
-mu_test = np.mean(X_float_test, axis=0)
-minm_test = np.min(X_float_test, axis=0)
-maxm_test = np.max(X_float_test, axis=0)
-X_test = (X_float_test - mu) / (maxm - minm)
-
-LR_predictions = clf.predict(X_test)
+plot_decision_boundary(lambda x: clf.predict(x), X, Y)
+plt.title("Logistic Regression")
+print ('Accuracy of logistic regression: %d ' % float((np.dot(Y_train, LR_predictions) + np.dot(1 - Y_train,1 - LR_predictions)) / float(Y_train.size) * 100) + '% ' + "(percentage of correctly labelled datapoints)")
 print ('Accuracy of logistic regression: %d ' % float((np.dot(Y_test, LR_predictions) + np.dot(1 - Y_test,1 - LR_predictions)) / float(Y_test.size) * 100) + '% ' + "(percentage of correctly labelled datapoints)")
+
+Y_train_hot = convert_to_one_hot(Y_train, 2)
+Y_test_hot = convert_to_one_hot(Y_test, 2)
 
 def model(X_train, Y_train, X_test, Y_test, learning_rate=0.0001, num_iterations = 1000, minibatch_size=32, print_cost = True):
         tf.reset_default_graph()
@@ -155,16 +162,9 @@ def random_mini_batches(X, Y, mini_batch_size = 64, seed = 0):
                 mini_batches.append(mini_batch)
         return mini_batches
 
-
-
-
-clf = sklearn.linear_model.LogisticRegressionCV();
-clf.fit(X_train, Y_train);
-
-X_train = X_train.T
-Y_train = convert_to_one_hot(Y_train, 2)
-
-
+def convert_to_one_hot(Y, C):
+    Y = np.eye(C)[Y.reshape(-1)].T
+    return Y
 
 def initialize_parameters_lr():
         tf.set_random_seed(1)
