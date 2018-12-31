@@ -10,7 +10,7 @@ Please follow the steps below to execute the code
 5. Execute the below code
     import nnmodel\
     from nnmodel import X_train, Y_train_hot, X_test, Y_test_hot, model\
-    params = model(X_train.T, Y_train_hot, X_test.T, Y_test_hot)\
+    params = model(X_train.T, Y_train_hot, X_test.T, Y_test_hot)
 6. This should run the neural network and print accurracy.\
     Cost after epoch 0: 0.680292\
     Cost after epoch 100: 0.167127\
@@ -21,8 +21,8 @@ Please follow the steps below to execute the code
     Cost after epoch 600: 0.063822\
     Cost after epoch 700: 0.054379\
     Cost after epoch 800: 0.047892\
-    Cost after epoch 900: 0.043542\
+    Cost after epoch 900: 0.043542
     
     Parameters have been trained!\
     Train Accuracy: 98.80478382110596\
-    Test Accuracy: 97.34748005867004\
+    Test Accuracy: 97.34748005867004
