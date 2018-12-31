@@ -1,6 +1,13 @@
 import tensorflow as tf
 import numpy as np
+import math
 import matplotlib.pyplot as plt
+import sklearn
+import sklearn.datasets
+import sklearn.linear_model
+import numpy as np
+from sklearn.decomposition import PCA
+
 from numpy import genfromtxt
 X_raw = genfromtxt('D:/RCS/FintechHackData/FinTechRatiosTrain.csv', delimiter=',', dtype=None)
 X_real = X_raw[1:]
@@ -23,21 +30,29 @@ X_test = X_norm[(X_raw.shape[0]-1):, :]
 Y_train = Y_combined[0:(X_raw.shape[0]-1)]
 Y_test = Y_combined[(X_raw.shape[0]-1):]
 
-import sklearn
-import sklearn.datasets
-import sklearn.linear_model
+#Data visualization
+#pca = PCA(n_components=2)
+#pca.fit(X_train)
+#pca.transform(X_train)
 
-clf = sklearn.linear_model.LogisticRegressionCV();
-clf.fit(X_train, Y_train);
-LR_predictions = clf.predict(X_train)
+#clf = sklearn.linear_model.LogisticRegressionCV();
+#clf.fit(X_train_gph.T, Y_train);
+#LR_predictions = clf.predict(X_train_gph)
 
-plot_decision_boundary(lambda x: clf.predict(x), X, Y)
-plt.title("Logistic Regression")
-print ('Accuracy of logistic regression: %d ' % float((np.dot(Y_train, LR_predictions) + np.dot(1 - Y_train,1 - LR_predictions)) / float(Y_train.size) * 100) + '% ' + "(percentage of correctly labelled datapoints)")
-print ('Accuracy of logistic regression: %d ' % float((np.dot(Y_test, LR_predictions) + np.dot(1 - Y_test,1 - LR_predictions)) / float(Y_test.size) * 100) + '% ' + "(percentage of correctly labelled datapoints)")
+#plot_decision_boundary(lambda x: clf.predict(x), X_train_gph, Y_train)
+#plt.title("Logistic Regression")
+#print ('Accuracy of logistic regression: %d ' % float((np.dot(Y_train, LR_predictions) + np.dot(1 - Y_train,1 - LR_predictions)) / float(Y_train.size) * 100) + '% ' + "(percentage of correctly labelled datapoints)")
+#print ('Accuracy of logistic regression: %d ' % float((np.dot(Y_test, LR_predictions) + np.dot(1 - Y_test,1 - LR_predictions)) / float(Y_test.size) * 100) + '% ' + "(percentage of correctly labelled datapoints)")
+
+def convert_to_one_hot(Y, C):
+    Y = np.eye(C)[Y.reshape(-1)].T
+    return Y
 
 Y_train_hot = convert_to_one_hot(Y_train, 2)
 Y_test_hot = convert_to_one_hot(Y_test, 2)
+
+#params = model(X_train_gph, Y_train_hot, X_train_gph, Y_train_hot, num_iterations=2000)
+#plot_decision_boundary(lambda x: predict(x.T, params), X_train_gph, Y_train)
 
 def model(X_train, Y_train, X_test, Y_test, learning_rate=0.0001, num_iterations = 1000, minibatch_size=32, print_cost = True):
         tf.reset_default_graph()
@@ -84,9 +99,9 @@ def model(X_train, Y_train, X_test, Y_test, learning_rate=0.0001, num_iterations
                 print("Parameters have been trained!")
                 correct_prediction = tf.equal(tf.argmax(Z3), tf.argmax(Y))
                 accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
-                print("Train Accuracy:", accuracy.eval({X: X_train, Y: Y_train}))
+                print("Train Accuracy:", accuracy.eval({X: X_train, Y: Y_train}) * 100)
                 dropout_val = 1
-                print("Test Accuracy:", accuracy.eval({X: X_test, Y: Y_test}))
+                print("Test Accuracy:", accuracy.eval({X: X_test, Y: Y_test}) * 100)
                 return parameters
 
 def cost(logits, labels):
@@ -106,14 +121,14 @@ def initialize_parameters():
         tf.set_random_seed(1)
         W1 = tf.get_variable("W1", [30, 18], initializer = tf.contrib.layers.xavier_initializer(seed=1))
         b1 = tf.get_variable("b1", [30, 1], initializer = tf.zeros_initializer())
-        W2 = tf.get_variable("W2", [25,30], initializer = tf.contrib.layers.xavier_initializer(seed=1))
-        b2 = tf.get_variable("b2", [25, 1], initializer = tf.zeros_initializer())
-        W3 = tf.get_variable("W3", [2, 25], initializer = tf.contrib.layers.xavier_initializer(seed=1))
-        #W1 = tf.get_variable("W1", [5, 2], initializer = tf.contrib.layers.xavier_initializer(seed=1))
-        #b1 = tf.get_variable("b1", [5, 1], initializer = tf.zeros_initializer())
-        #W2 = tf.get_variable("W2", [5,5], initializer = tf.contrib.layers.xavier_initializer(seed=1))
-        #b2 = tf.get_variable("b2", [5, 1], initializer = tf.zeros_initializer())
-        #W3 = tf.get_variable("W3", [2, 5], initializer = tf.contrib.layers.xavier_initializer(seed=1))
+        W2 = tf.get_variable("W2", [30,30], initializer = tf.contrib.layers.xavier_initializer(seed=1))
+        b2 = tf.get_variable("b2", [30, 1], initializer = tf.zeros_initializer())
+        W3 = tf.get_variable("W3", [2, 30], initializer = tf.contrib.layers.xavier_initializer(seed=1))
+        #W1 = tf.get_variable("W1", [10, 2], initializer = tf.contrib.layers.xavier_initializer(seed=1))
+        #b1 = tf.get_variable("b1", [10, 1], initializer = tf.zeros_initializer())
+        #W2 = tf.get_variable("W2", [10,10], initializer = tf.contrib.layers.xavier_initializer(seed=1))
+        #b2 = tf.get_variable("b2", [10, 1], initializer = tf.zeros_initializer())
+        #W3 = tf.get_variable("W3", [2, 10], initializer = tf.contrib.layers.xavier_initializer(seed=1))
         b3 = tf.get_variable("b3", [2, 1], initializer = tf.zeros_initializer())
         parameters = {"W1": W1,
                   "b1": b1,
@@ -121,7 +136,6 @@ def initialize_parameters():
                   "b2": b2,
                   "W3": W3,
                   "b3": b3}
-    
         return parameters
 def forward_propagation(X, parameters):
         W1 = parameters['W1']
@@ -161,10 +175,6 @@ def random_mini_batches(X, Y, mini_batch_size = 64, seed = 0):
                 mini_batch = (mini_batch_X, mini_batch_Y)
                 mini_batches.append(mini_batch)
         return mini_batches
-
-def convert_to_one_hot(Y, C):
-    Y = np.eye(C)[Y.reshape(-1)].T
-    return Y
 
 def initialize_parameters_lr():
         tf.set_random_seed(1)
@@ -212,7 +222,7 @@ def model_lr(X_train, Y_train, X_test, Y_test, learning_rate=0.01, num_epochs = 
                 return parameters
         
 def predict(X, parameters):
-    print("Inside convert to tensor:" + str(X.shape))
+    print("Inside convert to tensor : " + str(X.shape))
     W1 = tf.convert_to_tensor(parameters["W1"])
     b1 = tf.convert_to_tensor(parameters["b1"])
     W2 = tf.convert_to_tensor(parameters["W2"])
@@ -269,11 +279,12 @@ def plot_decision_boundary(model, X, y):
     Z = Z.reshape(xx.shape)
     # Plot the contour and training examples
     plt.contourf(xx, yy, Z, cmap=plt.cm.Spectral)
-    plt.ylabel('x2')
-    plt.xlabel('x1')
+    plt.ylabel('Working Capital / Total Assets')
+    plt.xlabel('Net Income / Total Assets')
     plt.scatter(X[0, :], X[1, :], c=y.ravel(), cmap=plt.cm.Spectral)
     plt.show()
 
+#params = model(X_train.T, Y_train_hot, X_test.T, Y_test_hot)
 
 def sigmoid(x):
     s = 1/(1+np.exp(-x))
