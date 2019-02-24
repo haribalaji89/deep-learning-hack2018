@@ -29,7 +29,7 @@ Please follow the steps below to execute the code
 # Credit Scoring
 1. pip install scorecardpy
 2. replace the files under <venv_name>Lib/site-packages/scorecardpy/ with the files in the repository under scorecardpy.
-3. Open python interpreter and execute the following commands.
+3. Open python interpreter and execute the following commands.\
 import scorecardpy as sc\
 dat, train_dat, test_dat = sc.loaddata()\
 break_list = {\
@@ -51,7 +51,7 @@ break_list = {\
     ' EBITDA to TA' : [-12.91160461,  -0.3941609 ,  -0.15583658,   0.23008634],\
     ' Cashflow to expenditure' : [-3.36329427, -0.03850119],\
     'Cashflow to debt' : [-7.26605425, -0.0769386],\
-}
+}\
 bins_adj = sc.woebin(dat, y="Result", breaks_list=break_list, no_cores=1)\
 train_woe = sc.woebin_ply(train_dat, bins_adj, no_cores = 1)\
 test_woe = sc.woebin_ply(test_dat, bins_adj, no_cores = 1)\
